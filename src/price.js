@@ -1,6 +1,6 @@
 
 
-exports.hello = async (event) => {
+exports.getPriceHistory = async (event) => {
   return {
     statusCode: 200,
     body: JSON.stringify(

@@ -38,5 +38,6 @@ jobs:
           APP_SECRET: ${{ secrets.APP_SECRET }}
           AWS_PARTITION: ${{ secrets.AWS_PARTITION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
         run: npx serverless deploy --stage ${{ env.STAGE }}
