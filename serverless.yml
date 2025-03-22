@@ -1,0 +1,152 @@
+
+service: squabble-${sls:stage}-price
+
+useDotenv: true
+
+package:
+  individually: false
+  patterns:
+    - "!*.env"
+
+custom:
+  prune:
+    automatic: true
+    number: 2
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION}
+  environment:
+    APP_STAGE: ${sls:stage}
+    APP_SECRET: ${env:APP_SECRET}
+    AWS_PARTITION: ${env:AWS_PARTITION}
+    AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
+    AWS_REGION: ${env:AWS_REGION}
+    FMP_API_KEY: ${env:FMP_API_KEY}
+  stackName: squabble-${sls:stage}-price
+  role:
+    Fn::GetAtt:
+      - ServiceIAMRole
+      - Arn
+  deploymentBucket:
+    name: squabble-${sls:stage}-serverless-deployment
+    maxPreviousDeploymentArtifacts: 2
+    blockPublicAccess: true
+    skipPolicySetup: true
+    versioning: false
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminInitiateAuth
+        - cognito-idp:AdminCreateUser
+        - cognito-idp:AdminSetUserPassword
+        - cognito-idp:AdminGetUser
+        - cognito-idp:AdminAddUserToGroup
+        - cognito-idp:AdminUpdateUserAttributes
+        - cognito-idp:AdminDisableUser
+        - cognito-idp:AdminEnableUser
+        - cognito-idp:AdminRemoveUserFromGroup
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:BatchGet*
+        - dynamodb:DescribeTable
+        - dynamodb:Get*
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:BatchWrite*
+        - dynamodb:Delete*
+        - dynamodb:Update*
+        - dynamodb:PutItem
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+        - logs:DescribeLogGroups
+        - logs:DescribeLogStreams
+        - logs:PutRetentionPolicy
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - sts:*
+      Resource: "*"
+
+resources:
+  Resources:
+    ServiceIAMRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: florizel-${sls:stage}-${env:AWS_REGION}-device
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - sts:AssumeRole
+        Policies:
+          - PolicyName: florizel-${sls:stage}-${env:AWS_REGION}-device
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement: ${self:provider.iamRoleStatements}
+
+    PriceHistoryTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+          - AttributeName: organizationId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+          - AttributeName: organizationId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        TableName: florizel-${sls:stage}-${env:AWS_REGION}-device-connection
+        Tags:
+          - Key: platform
+            Value: florizel
+          - Key: platform-environment
+            Value: ${sls:stage}
+          - Key: platform-component
+            Value: platform
+          - Key: platform-region
+            Value: ${env:AWS_REGION}
+          - Key: platform-service
+            Value: device
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+functions:  
+  getPriceHistory:
+    handler: functions.getPriceHistory
+    name: squabble-${sls:stage}-price-getPriceHistory
+    events:
+      - http:
+          path: /get-price-history
+          method: get
+          cors: true
+          private: true
+    environment:
+      APP_STAGE: ${sls:stage}
+      AWS_PARTITION: ${env:AWS_PARTITION}
+      AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
+      AWS_REGION: ${env:AWS_REGION}
+      APP_SECRET: ${env:APP_SECRET}
+      FMP_API_KEY: ${env:FMP_API_KEY}
+      
+

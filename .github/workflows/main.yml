@@ -1,0 +1,42 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set Stage Based on Branch
+        run: |
+          BRANCH_NAME=${GITHUB_REF##*/}
+          if [ "$BRANCH_NAME" = "main" ]; then
+            echo "STAGE=production" >> $GITHUB_ENV
+          elif [ "$BRANCH_NAME" = "develop" ]; then
+            echo "STAGE=dev" >> $GITHUB_ENV
+          else
+            echo "STAGE=dev" >> $GITHUB_ENV  
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy with Serverless
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          AWS_PARTITION: ${{ secrets.AWS_PARTITION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+        run: npx serverless deploy --stage ${{ env.STAGE }}
