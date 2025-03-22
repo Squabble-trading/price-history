@@ -105,7 +105,7 @@ resources:
     ApiSquabble:
       Type: AWS::ApiGateway::RestApi
       Properties:
-        Name: ${env:API_GW_RESOURCE_NAME}
+        Name: ${env:API_GW_RESOURCE_NAME}-{sls:stage}
 
     PriceHistoryTable:
       Type: "AWS::DynamoDB::Table"
@@ -158,5 +158,6 @@ functions:
       APP_SECRET: ${env:APP_SECRET}
       FMP_API_KEY: ${env:FMP_API_KEY}
       AWS_ACCESS_KEY: ${env:AWS_ACCESS_KEY}
+      API_GW_RESOURCE_NAME: ${env:API_GW_RESOURCE_NAME}
       
 

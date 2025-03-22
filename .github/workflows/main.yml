@@ -40,4 +40,5 @@ jobs:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          API_GW_RESOURCE_NAME: ${{ secrets.API_GW_RESOURCE_NAME }}
         run: npx serverless deploy --stage ${{ env.STAGE }}
