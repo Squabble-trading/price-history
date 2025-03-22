@@ -1,4 +1,3 @@
-
 service: squabble-${sls:stage}-price
 
 useDotenv: true
@@ -37,8 +36,8 @@ provider:
     blockPublicAccess: true
     skipPolicySetup: true
     versioning: false
-  apiGateway:
-    restApiName: ${env:API_GW_RESOURCE_NAME}-${sls:stage}
+  
+  apiName: ${env:API_GW_RESOURCE_NAME}-${sls:stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -105,7 +104,7 @@ resources:
               Statement: ${self:provider.iamRoleStatements}
 
     PriceHistoryTable:
-      Type: "AWS::DynamoDB::Table"
+      Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
           - AttributeName: connectionId
@@ -135,7 +134,7 @@ resources:
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
 
-functions:  
+functions:
   getPriceHistory:
     handler: src/price.getPriceHistory
     name: squabble-${sls:stage}-price-getPriceHistory
@@ -154,5 +153,3 @@ functions:
       FMP_API_KEY: ${env:FMP_API_KEY}
       AWS_ACCESS_KEY: ${env:AWS_ACCESS_KEY}
       API_GW_RESOURCE_NAME: ${env:API_GW_RESOURCE_NAME}
-      
-
