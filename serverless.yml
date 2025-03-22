@@ -1,0 +1,145 @@
+service: squabble-${sls:stage}-price
+
+useDotenv: true
+
+package:
+  individually: false
+  patterns:
+    - "!*.env"
+
+custom:
+  prune:
+    automatic: true
+    number: 2
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION}
+  environment:
+    APP_STAGE: ${sls:stage}
+    APP_SECRET: ${env:APP_SECRET}
+    AWS_PARTITION: ${env:AWS_PARTITION}
+    AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
+    FMP_API_KEY: ${env:FMP_API_KEY}
+    API_GW_RESOURCE_NAME: ${env:API_GW_RESOURCE_NAME}
+  role:
+    Fn::GetAtt:
+      - ServiceIAMRole
+      - Arn
+  deploymentBucket:
+    name: squabble-${sls:stage}-serverless-deployment
+    maxPreviousDeploymentArtifacts: 2
+    blockPublicAccess: true
+    skipPolicySetup: true
+    versioning: false
+  
+  apiName: ${env:API_GW_RESOURCE_NAME}-${sls:stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminInitiateAuth
+        - cognito-idp:AdminCreateUser
+        - cognito-idp:AdminSetUserPassword
+        - cognito-idp:AdminGetUser
+        - cognito-idp:AdminAddUserToGroup
+        - cognito-idp:AdminUpdateUserAttributes
+        - cognito-idp:AdminDisableUser
+        - cognito-idp:AdminEnableUser
+        - cognito-idp:AdminRemoveUserFromGroup
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:BatchGet*
+        - dynamodb:DescribeTable
+        - dynamodb:Get*
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:BatchWrite*
+        - dynamodb:Delete*
+        - dynamodb:Update*
+        - dynamodb:PutItem
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+        - logs:DescribeLogGroups
+        - logs:DescribeLogStreams
+        - logs:PutRetentionPolicy
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - sts:*
+      Resource: "*"
+
+resources:
+  Resources:
+    ServiceIAMRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: squabble-${sls:stage}-price
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - sts:AssumeRole
+        Policies:
+          - PolicyName: squabble-${sls:stage}-price
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement: ${self:provider.iamRoleStatements}
+
+    PriceHistoryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: timestamp
+            AttributeType: N
+          - AttributeName: price
+            AttributeType: N
+        KeySchema:
+          - AttributeName: timestamp
+            KeyType: HASH
+          - AttributeName: price
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        TableName: squabble-${sls:stage}-price-dataset
+        Tags:
+          - Key: platform
+            Value: squabble
+          - Key: platform-environment
+            Value: ${sls:stage}
+          - Key: platform-component
+            Value: platform
+          - Key: platform-region
+            Value: ${env:AWS_REGION}
+          - Key: platform-service
+            Value: price
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+functions:
+  getPriceHistory:
+    handler: src/price.getPriceHistory
+    name: squabble-${sls:stage}-price-getPriceHistory
+    events:
+      - http:
+          path: /get-price-history
+          method: get
+          cors: true
+          private: true
+    environment:
+      FMP_API_KEY: ${env:FMP_API_KEY}
