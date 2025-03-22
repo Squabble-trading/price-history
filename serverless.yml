@@ -84,7 +84,7 @@ resources:
     ServiceIAMRole:
       Type: AWS::IAM::Role
       Properties:
-        RoleName: florizel-${sls:stage}-${env:AWS_REGION}-device
+        RoleName: squabble-${sls:stage}-price
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -95,7 +95,7 @@ resources:
               Action:
                 - sts:AssumeRole
         Policies:
-          - PolicyName: florizel-${sls:stage}-${env:AWS_REGION}-device
+          - PolicyName: squabble-${sls:stage}-price
             PolicyDocument:
               Version: '2012-10-17'
               Statement: ${self:provider.iamRoleStatements}
@@ -116,10 +116,10 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
-        TableName: florizel-${sls:stage}-${env:AWS_REGION}-device-connection
+        TableName: squabble-${sls:stage}-price-data
         Tags:
           - Key: platform
-            Value: florizel
+            Value: squabble
           - Key: platform-environment
             Value: ${sls:stage}
           - Key: platform-component
@@ -127,7 +127,7 @@ resources:
           - Key: platform-region
             Value: ${env:AWS_REGION}
           - Key: platform-service
-            Value: device
+            Value: price
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
 
