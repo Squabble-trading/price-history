@@ -23,7 +23,6 @@ provider:
     AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
     FMP_API_KEY: ${env:FMP_API_KEY}
     API_GW_RESOURCE_NAME: ${env:API_GW_RESOURCE_NAME}
-  stackName: squabble-${sls:stage}-price
   role:
     Fn::GetAtt:
       - ServiceIAMRole
@@ -117,7 +116,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
-        TableName: squabble-${sls:stage}-price-data
+        TableName: squabble-${sls:stage}-price-dataset
         Tags:
           - Key: platform
             Value: squabble
