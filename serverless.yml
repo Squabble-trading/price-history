@@ -147,13 +147,4 @@ functions:
           cors: true
           private: true
     environment:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      APP_STAGE: ${sls:stage}
-      AWS_PARTITION: ${env:AWS_PARTITION}
-      AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
-      AWS_REGION: ${env:AWS_REGION}
-      APP_SECRET: ${env:APP_SECRET}
       FMP_API_KEY: ${env:FMP_API_KEY}
-      AWS_ACCESS_KEY: ${env:AWS_ACCESS_KEY}
-      API_GW_RESOURCE_NAME: ${env:API_GW_RESOURCE_NAME}
