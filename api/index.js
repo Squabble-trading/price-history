@@ -1,6 +1,6 @@
 const { fmpapiV3,fmpapiV4 } = require("../services/axios");
 
-export const getHistoricalPrices = async (params) => {
+exports.getHistoricalPrices = async (params) => {
     try{
         const response = await fmpapiV3.get("historical-chart/"+ params.timeframe +'/'+ params.symbol, {
             params: {
