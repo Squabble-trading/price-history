@@ -16,6 +16,7 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: ${env:AWS_REGION}
+  stackName: squabble-${sls:stage}-price
   environment:
     APP_STAGE: ${sls:stage}
     APP_SECRET: ${env:APP_SECRET}
