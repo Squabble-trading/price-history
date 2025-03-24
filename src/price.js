@@ -1,11 +1,21 @@
 const { getHistoricalPrices } = require("../api");
 
 exports.getPriceHistory = async (event) => {
-  console.log(event);
+  
+  try{
+    const params = event.queryStringParameters;
+    const response = await getHistoricalPrices(params);
+    return {
+      statusCode: 200,
+      data: response
+    };
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ message: 'Success' })
-  };
+  }catch(err){
+    console.log(err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err })
+    };
+  }
 
 };
